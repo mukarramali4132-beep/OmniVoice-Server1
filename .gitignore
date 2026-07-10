@@ -1,0 +1,33 @@
+# Python
+
+__pycache__/
+*.py[cod]
+
+# Virtual Environment
+
+venv/
+.env
+
+# Logs
+
+logs/
+*.log
+
+# Generated Audio
+
+app/storage/audio/*
+app/storage/temp/*
+
+# IDE
+
+.vscode/
+.idea/
+
+# Colab
+
+.ipynb_checkpoints/
+
+# OS
+
+.DS_Store
+Thumbs.db
