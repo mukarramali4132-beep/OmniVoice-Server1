@@ -5,7 +5,11 @@ from fastapi.responses import FileResponse
 
 from app.core.config import settings
 from app.engine import OmniVoiceEngine
-from app.models import CloneRequest, CloneResponse
+from app.models import (
+    ApiResponse,
+    CloneRequest,
+    CloneResponse,
+)
 from app.services import VoiceService
 
 router = APIRouter()
@@ -13,29 +17,45 @@ router = APIRouter()
 voice_service = VoiceService()
 engine = OmniVoiceEngine()
 
-# ---------------------------------------------------------
-# Health
-# ---------------------------------------------------------
 
-@router.get("/health")
+# ==========================================================
+# Health
+# ==========================================================
+
+@router.get(
+    "/health",
+    response_model=ApiResponse,
+)
 def health():
 
-    return engine.health()
+    return ApiResponse(
+        success=True,
+        message="Server is ready.",
+        data=engine.health(),
+    )
 
 
-# ---------------------------------------------------------
-# Clone
-# ---------------------------------------------------------
+# ==========================================================
+# Clone Voice
+# ==========================================================
 
 @router.post(
     "/clone",
-    response_model=CloneResponse,
+    response_model=ApiResponse,
 )
-def clone(request: CloneRequest):
+def clone(
+    request: CloneRequest,
+):
 
     try:
 
-        return voice_service.clone(request)
+        result: CloneResponse = voice_service.clone(request)
+
+        return ApiResponse(
+            success=True,
+            message="Voice generated successfully.",
+            data=result.model_dump(),
+        )
 
     except Exception as e:
 
@@ -45,14 +65,15 @@ def clone(request: CloneRequest):
         )
 
 
-# ---------------------------------------------------------
+# ==========================================================
 # Download Generated Audio
-# ---------------------------------------------------------
+# ==========================================================
 
 @router.get("/download/{filename}")
-def download(filename: str):
+def download(
+    filename: str,
+):
 
-    # Prevent path traversal attacks
     filename = Path(filename).name
 
     file_path = settings.AUDIO_DIR / filename
