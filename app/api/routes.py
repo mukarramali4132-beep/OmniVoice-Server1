@@ -1,14 +1,17 @@
-from fastapi import APIRouter, HTTPException
+from pathlib import Path
 
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
+
+from app.core.config import settings
+from app.engine import OmniVoiceEngine
 from app.models import CloneRequest, CloneResponse
 from app.services import VoiceService
-from app.engine import OmniVoiceEngine
 
 router = APIRouter()
 
 voice_service = VoiceService()
 engine = OmniVoiceEngine()
-
 
 # ---------------------------------------------------------
 # Health
@@ -28,9 +31,7 @@ def health():
     "/clone",
     response_model=CloneResponse,
 )
-def clone(
-    request: CloneRequest,
-):
+def clone(request: CloneRequest):
 
     try:
 
@@ -42,3 +43,29 @@ def clone(
             status_code=500,
             detail=str(e),
         )
+
+
+# ---------------------------------------------------------
+# Download Generated Audio
+# ---------------------------------------------------------
+
+@router.get("/download/{filename}")
+def download(filename: str):
+
+    # Prevent path traversal attacks
+    filename = Path(filename).name
+
+    file_path = settings.AUDIO_DIR / filename
+
+    if not file_path.exists():
+
+        raise HTTPException(
+            status_code=404,
+            detail="Audio file not found.",
+        )
+
+    return FileResponse(
+        path=file_path,
+        media_type="audio/wav",
+        filename=filename,
+    )
