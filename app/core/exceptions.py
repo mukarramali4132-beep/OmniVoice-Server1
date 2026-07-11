@@ -1,6 +1,7 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from app.core.errors import OmniVoiceError
 from app.core.logger import logger
 from app.models import ApiResponse
 
@@ -12,13 +13,22 @@ async def global_exception_handler(
 
     logger.exception(exc)
 
-    response = ApiResponse(
-        success=False,
-        message=str(exc),
-        data=None,
-    )
+    if isinstance(exc, OmniVoiceError):
+
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=ApiResponse(
+                success=False,
+                message=exc.message,
+                data=None,
+            ).model_dump(),
+        )
 
     return JSONResponse(
         status_code=500,
-        content=response.model_dump(),
+        content=ApiResponse(
+            success=False,
+            message="Internal Server Error",
+            data=None,
+        ).model_dump(),
     )
