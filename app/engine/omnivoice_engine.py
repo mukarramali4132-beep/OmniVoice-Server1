@@ -24,6 +24,17 @@ class OmniVoiceEngine:
 
     # ---------------------------------------------------------
 
+    def initialize(self):
+        """
+        Initialize the AI model.
+        """
+
+        logger.info("Initializing OmniVoice Engine...")
+
+        self.manager.initialize()
+
+    # ---------------------------------------------------------
+
     def health(self):
 
         return self.manager.health()
@@ -83,9 +94,7 @@ class OmniVoiceEngine:
 
             filename = uuid_filename()
 
-            output_path = (
-                settings.AUDIO_DIR / filename
-            )
+            output_path = settings.AUDIO_DIR / filename
 
             sf.write(
                 str(output_path),
@@ -93,9 +102,7 @@ class OmniVoiceEngine:
                 self.manager.sampling_rate,
             )
 
-            elapsed = (
-                time.perf_counter() - start
-            )
+            elapsed = time.perf_counter() - start
 
             logger.success(
                 f"Voice generated in {elapsed:.2f} sec"
