@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
 from app.core.config import settings
@@ -16,7 +16,6 @@ router = APIRouter()
 
 voice_service = VoiceService()
 engine = OmniVoiceEngine()
-
 
 # ==========================================================
 # Health
@@ -65,16 +64,15 @@ def download(
     filename: str,
 ):
 
-    # Prevent path traversal
     filename = Path(filename).name
 
     file_path = settings.AUDIO_DIR / filename
 
     if not file_path.exists():
+        from app.core.errors import ReferenceAudioNotFoundError
 
-        raise HTTPException(
-            status_code=404,
-            detail="Audio file not found.",
+        raise ReferenceAudioNotFoundError(
+            str(file_path)
         )
 
     return FileResponse(

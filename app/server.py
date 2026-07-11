@@ -4,38 +4,32 @@ from fastapi import FastAPI
 
 from app.api.routes import router
 from app.core.config import settings
+from app.core.errors import OmniVoiceError
+from app.core.exceptions import global_exception_handler
 from app.core.logger import logger
 from app.engine import OmniVoiceEngine
-from app.core.exceptions import global_exception_handler
 
 # ---------------------------------------------------------
-# Initialize Engine
+# Engine
 # ---------------------------------------------------------
 
 engine = OmniVoiceEngine()
 
 
 # ---------------------------------------------------------
-# Application Lifecycle
+# Startup / Shutdown
 # ---------------------------------------------------------
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Runs when the application starts and stops.
-    """
 
     logger.info("=" * 60)
     logger.info(f"{settings.APP_NAME} v{settings.VERSION}")
     logger.info("Starting server...")
 
-    try:
-        engine.initialize()
-        logger.success("Server initialization completed.")
+    engine.initialize()
 
-    except Exception as e:
-        logger.exception("Failed to initialize server.")
-        raise e
+    logger.success("Server initialization completed.")
 
     yield
 
@@ -44,7 +38,7 @@ async def lifespan(app: FastAPI):
 
 
 # ---------------------------------------------------------
-# FastAPI Application
+# FastAPI
 # ---------------------------------------------------------
 
 app = FastAPI(
@@ -53,12 +47,15 @@ app = FastAPI(
     description="Production AI Voice Cloning Server",
     lifespan=lifespan,
 )
+
+# Handle only our business exceptions
 app.add_exception_handler(
-    Exception,
+    OmniVoiceError,
     global_exception_handler,
 )
+
 # ---------------------------------------------------------
-# Register Routes
+# Routes
 # ---------------------------------------------------------
 
 app.include_router(router)

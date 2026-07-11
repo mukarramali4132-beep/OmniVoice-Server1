@@ -8,27 +8,16 @@ from app.models import ApiResponse
 
 async def global_exception_handler(
     request: Request,
-    exc: Exception,
+    exc: OmniVoiceError,
 ):
 
     logger.exception(exc)
 
-    if isinstance(exc, OmniVoiceError):
-
-        return JSONResponse(
-            status_code=exc.status_code,
-            content=ApiResponse(
-                success=False,
-                message=exc.message,
-                data=None,
-            ).model_dump(),
-        )
-
     return JSONResponse(
-        status_code=500,
+        status_code=exc.status_code,
         content=ApiResponse(
             success=False,
-            message="Internal Server Error",
+            message=exc.message,
             data=None,
         ).model_dump(),
     )
