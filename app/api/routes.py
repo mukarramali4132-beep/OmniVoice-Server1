@@ -47,22 +47,13 @@ def clone(
     request: CloneRequest,
 ):
 
-    try:
+    result: CloneResponse = voice_service.clone(request)
 
-        result: CloneResponse = voice_service.clone(request)
-
-        return ApiResponse(
-            success=True,
-            message="Voice generated successfully.",
-            data=result.model_dump(),
-        )
-
-    except Exception as e:
-
-        raise HTTPException(
-            status_code=500,
-            detail=str(e),
-        )
+    return ApiResponse(
+        success=True,
+        message="Voice generated successfully.",
+        data=result.model_dump(),
+    )
 
 
 # ==========================================================
@@ -74,6 +65,7 @@ def download(
     filename: str,
 ):
 
+    # Prevent path traversal
     filename = Path(filename).name
 
     file_path = settings.AUDIO_DIR / filename

@@ -6,7 +6,7 @@ from app.api.routes import router
 from app.core.config import settings
 from app.core.logger import logger
 from app.engine import OmniVoiceEngine
-
+from app.core.exceptions import global_exception_handler
 
 # ---------------------------------------------------------
 # Initialize Engine
@@ -53,7 +53,10 @@ app = FastAPI(
     description="Production AI Voice Cloning Server",
     lifespan=lifespan,
 )
-
+app.add_exception_handler(
+    Exception,
+    global_exception_handler,
+)
 # ---------------------------------------------------------
 # Register Routes
 # ---------------------------------------------------------
