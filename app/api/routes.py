@@ -1,23 +1,44 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
-from app.core.config import settings
+from app.models import CloneRequest, CloneResponse
+from app.services import VoiceService
+from app.engine import OmniVoiceEngine
 
 router = APIRouter()
 
+voice_service = VoiceService()
+engine = OmniVoiceEngine()
 
-@router.get("/")
-async def root():
 
-    return {
-        "message": "Welcome to OmniVoice Server"
-    }
-
+# ---------------------------------------------------------
+# Health
+# ---------------------------------------------------------
 
 @router.get("/health")
-async def health():
+def health():
 
-    return {
-        "status": "online",
-        "server": settings.APP_NAME,
-        "version": settings.VERSION,
-    }
+    return engine.health()
+
+
+# ---------------------------------------------------------
+# Clone
+# ---------------------------------------------------------
+
+@router.post(
+    "/clone",
+    response_model=CloneResponse,
+)
+def clone(
+    request: CloneRequest,
+):
+
+    try:
+
+        return voice_service.clone(request)
+
+    except Exception as e:
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e),
+        )
