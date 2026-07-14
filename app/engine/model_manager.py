@@ -7,7 +7,10 @@ from omnivoice import OmniVoice
 
 from app.core.config import settings
 from app.core.logger import logger
+import os
 
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 
 class ModelManager:
     """
