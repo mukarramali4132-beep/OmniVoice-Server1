@@ -12,7 +12,7 @@ class Settings:
 
     APP_NAME = "OmniVoice Server"
 
-    VERSION = "2.0.0"
+    VERSION = "3.0.0"
 
     HOST = "0.0.0.0"
 
@@ -40,9 +40,21 @@ class Settings:
     # OmniVoice
     # ==========================================================
 
-    MODEL_NAME = "k2-fsa/OmniVoice"
+    # Local Google Drive Model Path
+    MODEL_PATH = Path("/content/drive/MyDrive/OmniVoice")
+
+    # Backward compatibility
+    MODEL_NAME = str(MODEL_PATH)
 
     LOAD_ASR = False
+
+    # ==========================================================
+    # Torch
+    # ==========================================================
+
+    DEVICE = "cuda"
+
+    DTYPE = "float16"
 
     # ==========================================================
     # API
@@ -78,3 +90,23 @@ settings.LOG_DIR.mkdir(
     parents=True,
     exist_ok=True,
 )
+
+# ==========================================================
+# Verify Model
+# ==========================================================
+
+if not settings.MODEL_PATH.exists():
+
+    raise FileNotFoundError(
+        f"""
+
+OmniVoice model not found.
+
+Expected:
+
+{settings.MODEL_PATH}
+
+Please mount Google Drive first.
+
+"""
+    )

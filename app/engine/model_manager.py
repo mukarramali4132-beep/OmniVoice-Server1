@@ -22,6 +22,11 @@ os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 LOCAL_MODEL_PATH = "/content/drive/MyDrive/OmniVoice"
 
 
+# Disable HF XET (optional but safe)
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
+
+
 class ModelManager:
 
     _instance = None
@@ -34,7 +39,6 @@ class ModelManager:
             with cls._instance_lock:
 
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
@@ -68,7 +72,11 @@ class ModelManager:
 
         self.sampling_rate = None
 
+<<<<<<< HEAD
     # --------------------------------------------------------
+=======
+    # ----------------------------------------------------------
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
 
     def initialize(self):
 
@@ -84,13 +92,19 @@ class ModelManager:
 
             logger.info("=" * 60)
             logger.info("Loading OmniVoice Model...")
+<<<<<<< HEAD
             logger.info(f"Device : {self.device}")
             logger.info(f"Model Path : {LOCAL_MODEL_PATH}")
+=======
+            logger.info(f"Device       : {self.device}")
+            logger.info(f"Model Path   : {settings.MODEL_PATH}")
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
 
             start = time.perf_counter()
 
             try:
 
+<<<<<<< HEAD
                 if not os.path.exists(LOCAL_MODEL_PATH):
 
                     raise FileNotFoundError(
@@ -99,6 +113,16 @@ class ModelManager:
 
                 self.model = OmniVoice.from_pretrained(
                     LOCAL_MODEL_PATH,
+=======
+                if not settings.MODEL_PATH.exists():
+
+                    raise FileNotFoundError(
+                        f"Model folder not found:\n{settings.MODEL_PATH}"
+                    )
+
+                self.model = OmniVoice.from_pretrained(
+                    str(settings.MODEL_PATH),
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
                     device_map=self.device,
                     torch_dtype=self.dtype,
                     load_asr=settings.LOAD_ASR,
@@ -111,19 +135,38 @@ class ModelManager:
                 elapsed = time.perf_counter() - start
 
                 logger.success("Model loaded successfully.")
+<<<<<<< HEAD
                 logger.info(f"Sampling Rate : {self.sampling_rate}")
                 logger.info(f"Load Time : {elapsed:.2f} sec")
+=======
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
+
+            except Exception as e:
+
+<<<<<<< HEAD
+                logger.exception(e)
+                raise
+=======
+                logger.info(
+                    f"Load Time     : {elapsed:.2f} sec"
+                )
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
 
             except Exception as e:
 
                 logger.exception(e)
+
                 raise
 
             finally:
 
                 self.loading = False
 
+<<<<<<< HEAD
     # --------------------------------------------------------
+=======
+    # ----------------------------------------------------------
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
 
     def get_model(self):
 
@@ -131,7 +174,28 @@ class ModelManager:
 
         return self.model
 
+<<<<<<< HEAD
     # --------------------------------------------------------
+=======
+    # ----------------------------------------------------------
+
+    def unload(self):
+
+        if self.model is not None:
+
+            del self.model
+
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
+
+            self.model = None
+
+            self.loaded = False
+
+            logger.info("Model unloaded.")
+
+    # ----------------------------------------------------------
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
 
     def health(self):
 
@@ -143,4 +207,25 @@ class ModelManager:
         }
 
 
+<<<<<<< HEAD
 model_manager = ModelManager()
+=======
+            "device":
+                self.device,
+
+            "gpu":
+                torch.cuda.is_available(),
+
+            "sampling_rate":
+                self.sampling_rate,
+
+            "loaded":
+                self.loaded,
+
+            "loading":
+                self.loading,
+        }
+
+
+model_manager = ModelManager()
+>>>>>>> eee99e9 (Load OmniVoice model from local Drive and improve startup)
