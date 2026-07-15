@@ -1,22 +1,28 @@
+import os
 import threading
 import time
 
 import torch
-
 from omnivoice import OmniVoice
 
 from app.core.config import settings
 from app.core.logger import logger
-import os
+
+# --------------------------------------------------------
+# Disable HF XET
+# --------------------------------------------------------
 
 os.environ["HF_HUB_DISABLE_XET"] = "1"
 os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"
 
+# --------------------------------------------------------
+# Local model location
+# --------------------------------------------------------
+
+LOCAL_MODEL_PATH = "/content/drive/MyDrive/OmniVoice"
+
+
 class ModelManager:
-    """
-    Thread-safe singleton responsible only
-    for loading and storing the OmniVoice model.
-    """
 
     _instance = None
     _instance_lock = threading.Lock()
@@ -62,7 +68,7 @@ class ModelManager:
 
         self.sampling_rate = None
 
-    # -----------------------------------------------------
+    # --------------------------------------------------------
 
     def initialize(self):
 
@@ -79,45 +85,45 @@ class ModelManager:
             logger.info("=" * 60)
             logger.info("Loading OmniVoice Model...")
             logger.info(f"Device : {self.device}")
+            logger.info(f"Model Path : {LOCAL_MODEL_PATH}")
 
             start = time.perf_counter()
 
             try:
 
+                if not os.path.exists(LOCAL_MODEL_PATH):
+
+                    raise FileNotFoundError(
+                        f"Model folder not found:\n{LOCAL_MODEL_PATH}"
+                    )
+
                 self.model = OmniVoice.from_pretrained(
-                    settings.MODEL_NAME,
+                    LOCAL_MODEL_PATH,
                     device_map=self.device,
                     torch_dtype=self.dtype,
                     load_asr=settings.LOAD_ASR,
                 )
 
-                self.sampling_rate = (
-                    self.model.sampling_rate
-                )
+                self.sampling_rate = self.model.sampling_rate
 
                 self.loaded = True
 
-                elapsed = (
-                    time.perf_counter() - start
-                )
+                elapsed = time.perf_counter() - start
 
-                logger.success(
-                    "Model loaded successfully."
-                )
+                logger.success("Model loaded successfully.")
+                logger.info(f"Sampling Rate : {self.sampling_rate}")
+                logger.info(f"Load Time : {elapsed:.2f} sec")
 
-                logger.info(
-                    f"Sampling Rate : {self.sampling_rate}"
-                )
+            except Exception as e:
 
-                logger.info(
-                    f"Load Time : {elapsed:.2f} sec"
-                )
+                logger.exception(e)
+                raise
 
             finally:
 
                 self.loading = False
 
-    # -----------------------------------------------------
+    # --------------------------------------------------------
 
     def get_model(self):
 
@@ -125,23 +131,16 @@ class ModelManager:
 
         return self.model
 
-    # -----------------------------------------------------
+    # --------------------------------------------------------
 
     def health(self):
 
         return {
-
-            "status":
-                "ready"
-                if self.loaded
-                else "loading",
-
-            "gpu":
-                torch.cuda.is_available(),
-
-            "device":
-                self.device,
-
-            "sampling_rate":
-                self.sampling_rate,
+            "status": "ready" if self.loaded else "loading",
+            "gpu": torch.cuda.is_available(),
+            "device": self.device,
+            "sampling_rate": self.sampling_rate,
         }
+
+
+model_manager = ModelManager()
